@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.11.0",
-    "@faker-js/faker": "^8.4.1",
+    "@faker-js/faker": "^9.2.0",
     "@remix-run/dev": "^2.12.1",
     "@testing-library/cypress": "^10.0.2",
     "@types/bcryptjs": "^2.4.6",
