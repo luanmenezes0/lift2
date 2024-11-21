@@ -1,6 +1,7 @@
 import type { Delivery, DeliveryUnit } from "@prisma/client";
 
 import { prisma } from "~/db.server";
+import { groupBy } from "~/utils";
 
 export async function getDeliveries() {
   return prisma.delivery.findMany({
@@ -117,4 +118,15 @@ export async function getInventory(rentableId: number) {
       count: true,
     },
   });
+}
+
+export async function getDeliveryUnits(buildingSiteId: string) {
+  const deliveryUnits = await prisma.deliveryUnit.findMany({
+    where: { buildingSiteId: Number(buildingSiteId) },
+    include: { rentable: true },
+  });
+
+  const groupped = groupBy(deliveryUnits, (a) => a.rentable.name);
+
+  return groupped;
 }

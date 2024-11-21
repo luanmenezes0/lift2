@@ -28,7 +28,9 @@ import { MyAlertDialog } from "~/components/AlertDialog";
 import BuildingSiteModal from "~/components/BuildingSiteModal";
 import BuildingSiteStatusLabel from "~/components/BuildingSiteStatusLabel";
 import DeliveryCard from "~/components/DeliveryCard";
+import { DeliveyModal } from "~/components/DeliveyModal";
 import Header from "~/components/Header";
+import ItemBalance from "~/components/ItemBalance";
 import {
   deleteBuildingSite,
   editBuildingSite,
@@ -39,13 +41,12 @@ import {
   deleteDelivery,
   editDelivery,
   getBuildingSiteInventory,
+  getDeliveryUnits,
 } from "~/models/delivery.server";
 import { getRentables } from "~/models/inventory.server";
 import { requireUserId } from "~/session.server";
 import { useUser } from "~/utils";
 import { buildingSiteValidator } from "~/validators/buildingSiteValidator";
-
-import { DeliveyModal } from "../../components/DeliveyModal";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireUserId(request);
@@ -62,6 +63,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const rentables = await getRentables();
 
+  const deliveryUnits = await getDeliveryUnits(params.buildingId);
+
   const buildingSiteWithFormatedDate = {
     ...buildingSite,
     deliveries: buildingSite.deliveries.map((d) => ({
@@ -74,6 +77,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     buildingSite: buildingSiteWithFormatedDate,
     inventory,
     rentables,
+    deliveryUnits,
   });
 }
 
@@ -116,6 +120,7 @@ export async function action({ request }: ActionFunctionArgs) {
             count: Number(deliveryType) === 1 ? Number(count) : -Number(count),
             deliveryType: Number(deliveryType),
             buildingSiteId: Number(buildingSiteId),
+            date: dayjs(date).toDate(),
           };
         })
         .filter((u) => u.count !== 0);
@@ -199,7 +204,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function BuildingSite() {
-  const { buildingSite, inventory, rentables } = useLoaderData<typeof loader>();
+  const { buildingSite, inventory, rentables, deliveryUnits } =
+    useLoaderData<typeof loader>();
 
   const user = useUser();
 
@@ -296,6 +302,7 @@ export default function BuildingSite() {
           </Grid>
         </VStack>
         <Divider />
+
         <VStack align="stretch" as="section">
           <Heading
             as="h2"
@@ -308,6 +315,8 @@ export default function BuildingSite() {
             <DeliveryCard key={d.id} delivery={d} rentables={rentables} />
           ))}
         </VStack>
+        <Divider />
+        <ItemBalance deliveryUnits={deliveryUnits} />
       </Container>
       {/* delivery creation */}
       {isOpen ? (
